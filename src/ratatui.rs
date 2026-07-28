@@ -47,7 +47,7 @@ pub fn select_server(items: &[String]) -> Result<MenuAction, io::Error> {
                 .highlight_style(
                     Style::default()
                         .fg(Color::Black)
-                        .bg(Color::Cyan)
+                        .bg(Color::LightGreen)
                         .add_modifier(Modifier::BOLD),
                 )
                 .highlight_symbol("> ")
