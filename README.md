@@ -1,14 +1,13 @@
 # cbs-ssh
 
-cbs-ssh เป็นเครื่องมือ CLI สำหรับเชื่อมต่อ SSH ไปยังเซิร์ฟเวอร์ต่างๆ จากไฟล์ server.json โดยรองรับการเลือกเซิร์ฟเวอร์ผ่าน TUI (Ratatui) และคำสั่งตามชื่อเซิร์ฟเวอร์ได้ทันที
+cbs-ssh เป็นเครื่องมือ CLI สำหรับเชื่อมต่อ SSH ไปยังเซิร์ฟเวอร์ต่าง ๆ จากไฟล์ `server.json` โดยรองรับการเลือกเซิร์ฟเวอร์ผ่าน TUI (Ratatui) และคำสั่งตามชื่อเซิร์ฟเวอร์ได้ทันที
 
 ## คุณสมบัติ
 
-- อ่านเซิร์ฟเวอร์จากไฟล์ server.json
+- อ่านเซิร์ฟเวอร์จากไฟล์ `server.json`
 - เลือกเซิร์ฟเวอร์ผ่านหน้าจอ Ratatui
 - รองรับคำสั่งเชื่อมต่อแบบพารามิเตอร์
-- รองรับคำสั่ง `show` เพื่อแสดงเนื้อหาไฟล์ server.json
-- รองรับการตั้งค่า `CBS_SSH_SERVER_JSON` เพื่อระบุ path ของไฟล์ server.json
+- รองรับคำสั่ง `show` เพื่อแสดงเนื้อหาไฟล์ `server.json`
 
 ## ข้อกำหนดเบื้องต้น
 
@@ -16,15 +15,7 @@ cbs-ssh เป็นเครื่องมือ CLI สำหรับเช�
 - SSH client ที่ถูกติดตั้งอยู่ในระบบ
 - `sshpass` สำหรับการส่งรหัสผ่านแบบไม่โต้ตอบ
 
-## ติดตั้ง Rust
-
-ถ้ายังไม่มี Rust ติดตั้ง ให้ติดตั้งจาก:
-
-https://www.rust-lang.org/tools/install
-
-## ติดตั้ง sshpass
-
-โปรเจกต์นี้เหมาะกับ Linux/WSL มากที่สุด เพราะใช้ `sshpass` เพื่อส่งรหัสผ่านให้ ssh โดยอัตโนมัติ
+## ติดตั้ง `sshpass`
 
 ### Ubuntu / Debian / WSL Ubuntu
 
@@ -45,57 +36,47 @@ sudo dnf install -y sshpass
 sudo pacman -S sshpass
 ```
 
-### macOS
+> หมายเหตุ: macOS อาจใช้ได้แต่ไม่แน่ใจว่าเหมาะสมหรือจะทำงานครบถ้วนกับโปรเจกต์นี้ เพราะพฤติกรรมของ SSH และ `sshpass` บน macOS อาจต่างจาก Linux/WSL เล็กน้อย
 
-macOS อาจใช้ได้ แต่ไม่แน่ใจว่าเหมาะสมหรือจะทำงานครบถ้วนกับโปรเจกต์นี้ เพราะ `sshpass` และพฤติกรรมของ SSH บน macOS อาจต่างจาก Linux/WSL เล็กน้อย
-
-ถ้าต้องการลองบน macOS ให้ลอง:
+## Build โปรเจกต์
 
 ```bash
-brew install hudochenkov/sshpass/sshpass
+cargo build --release
 ```
 
-แต่ถ้าไม่สำเร็จหรือมีปัญหาเกี่ยวกับ PATH หรือ SSH authentication ควรใช้ Linux/WSL เป็นตัวเลือกหลัก
+## วิธีใช้งาน
 
-## ติดตั้งโปรเจกต์
-
-```bash
-cargo build
-```
-
-## การใช้งาน
-
-### เปิดเมนูเลือกเซิร์ฟเวอร์
+### 1) เปิดเมนูเลือกเซิร์ฟเวอร์
 
 ```bash
 cargo run
 ```
 
-### แสดงข้อมูลใน server.json
+### 2) แสดงข้อมูลใน `server.json`
 
 ```bash
 cargo run -- show
 ```
 
-### เชื่อมต่อด้วยชื่อเซิร์ฟเวอร์จากไฟล์
+### 3) เชื่อมต่อด้วยชื่อเซิร์ฟเวอร์จากไฟล์
 
 ```bash
 cargo run -- SERVER_1
 ```
 
-### เชื่อมต่อด้วยค่าตรง ๆ
+### 4) เชื่อมต่อด้วยค่าตรง ๆ
 
 ```bash
 cargo run -- ubuntu 127.0.0.1 password111
 ```
 
-หรือกำหนดพอร์ตเอง
+หรือกำหนดพอร์ตเอง:
 
 ```bash
 cargo run -- ubuntu 127.0.0.1 2221 password111
 ```
 
-## โครงสร้างไฟล์ server.json
+## โครงสร้างไฟล์ `server.json`
 
 ตัวอย่าง:
 
@@ -112,9 +93,9 @@ cargo run -- ubuntu 127.0.0.1 2221 password111
 ]
 ```
 
-## ตั้งค่า environment variable
+## ตั้งค่า Environment Variable
 
-หากต้องการระบุ path ของไฟล์ server.json โดยไม่ต้องวางไฟล์ไว้ในโฟลเดอร์ปัจจุบัน ให้ตั้งตัวแปร `CBS_SSH_SERVER_JSON`
+หากต้องการระบุ path ของไฟล์ `server.json` โดยไม่ต้องวางไฟล์ไว้ในโฟลเดอร์ปัจจุบัน ให้ตั้งตัวแปร `CBS_SSH_SERVER_JSON`
 
 ### PowerShell
 
@@ -128,10 +109,34 @@ $env:CBS_SSH_SERVER_JSON = "D:\saas-project\cbs-ssh\server.json"
 export CBS_SSH_SERVER_JSON="$HOME/.config/cbs-ssh/server.json"
 ```
 
-ถ้าต้องการให้ตัวแปรอยู่ตลอด session หรือเปิด terminal ใหม่ ให้เพิ่มลงใน profile ของ shell ที่ใช้
+## ติดตั้งบน WSL / Linux
 
-## หมายเหตุ
+1. Build executable file
 
-- ถ้าโปรแกรมแจ้งว่าไม่พบ `sshpass` ให้ติดตั้งก่อนใช้งาน
-- ถ้าใช้ WSL ให้ตรวจว่า `sshpass` ติดตั้งใน WSL environment ที่คุณรันโปรแกรมอยู่ด้วย
-- ถ้าใช้ PowerShell บน Windows และเรียกโปรแกรมจาก WSL อาจต้องดูว่า environment ที่รันอยู่เป็น Windows หรือ WSL ก่อน
+```bash
+cargo build --release
+```
+
+2. คัดลอกไฟล์ executable และ `server.json` ไปไว้ในโฟลเดอร์เดียวกัน
+
+3. เพิ่มข้อมูลใน `~/.zshrc` หรือ `~/.bashrc`
+
+```bash
+export PATH="/path/to/your/bin:$PATH"
+export CBS_SSH_SERVER_JSON="/path/to/your/bin/server.json"
+```
+
+4. โหลดไฟล์ config ใหม่
+
+```bash
+source ~/.zshrc
+```
+
+หรือ
+
+```bash
+source ~/.bashrc
+```
+
+
+
