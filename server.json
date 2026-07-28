@@ -1,0 +1,26 @@
+[
+    {
+        "name": "SERVER_1",
+        "user": "ubuntu",
+        "host": "127.0.0.1",
+        "port": 2221,
+        "encode": "th_TH.UTF-8",
+        "password": "password111"
+    },
+    {
+        "name": "SERVER_2",
+        "user": "ubuntu",
+        "host": "127.0.0.1",
+        "port": 2222,
+        "encode": "th_TH.UTF-8",
+        "password": "password222"
+    },
+    {
+        "name": "SERVER_3",
+        "user": "ubuntu",
+        "host": "127.0.0.1",
+        "port": 2223,
+        "encode": "th_TH.UTF-8",
+        "password": "password333"
+    }
+]

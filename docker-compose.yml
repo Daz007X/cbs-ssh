@@ -1,0 +1,32 @@
+services:
+  server_1:
+    image: linuxserver/openssh-server:version-10.3_p1-r0
+    container_name: ssh_server_1
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Bangkok
+      - PASSWORD_ACCESS=true
+      - USER_PASSWORD=password111 # รหัสผ่านของ Server 1
+      - USER_NAME=ubuntu
+    ports:
+      - "2221:2222" # รีไดเรกต์พอร์ตมาที่เครื่องหลักเป็น 2221
+  server_2:
+    image: linuxserver/openssh-server:version-10.3_p1-r0
+    container_name: ssh_server_2
+    environment:
+      - PASSWORD_ACCESS=true
+      - USER_PASSWORD=password222 # รหัสผ่านของ Server 2
+      - USER_NAME=ubuntu
+    ports:
+      - "2222:2222" # รีไดเรกต์พอร์ตมาที่เครื่องหลักเป็น 2222
+
+  server_3:
+    image: linuxserver/openssh-server:version-10.3_p1-r0
+    container_name: ssh_server_3
+    environment:
+      - PASSWORD_ACCESS=true
+      - USER_PASSWORD=password333 # รหัสผ่านของ Server 3
+      - USER_NAME=ubuntu
+    ports:
+      - "2223:2222" # รีไดเรกต์พอร์ตมาที่เครื่องหลักเป็น 2223
