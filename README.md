@@ -76,6 +76,8 @@ cargo run -- ubuntu 127.0.0.1 password111
 cargo run -- ubuntu 127.0.0.1 2221 password111
 ```
 
+> หมายเหตุ: หากไม่ระบุพอร์ต จะใช้พอร์ตเริ่มต้น `22` และใช้ encoding เริ่มต้น `UTF-8`
+
 ## โครงสร้างไฟล์ `server.json`
 
 ตัวอย่าง:
@@ -92,6 +94,8 @@ cargo run -- ubuntu 127.0.0.1 2221 password111
   }
 ]
 ```
+
+> `encode` เป็นฟิลด์ไม่บังคับ หากไม่ระบุจะใช้ค่าเริ่มต้น `UTF-8`
 
 ## ตั้งค่า Environment Variable
 
@@ -136,6 +140,20 @@ source ~/.zshrc
 
 ```bash
 source ~/.bashrc
+```
+
+## ความปลอดภัย
+
+- รหัสผ่านถูกส่งให้ `sshpass` ผ่านตัวแปรสภาพแวดล้อม `SSHPASS` (ใช้ `sshpass -e`) จึงไม่ปรากฏใน process list
+- โปรแกรมตั้งค่า `StrictHostKeyChecking=accept-new` คือยอมรับ host key ใหม่ในครั้งแรก แต่จะปฏิเสธหาก key เดิมเปลี่ยนภายหลัง
+- ไฟล์ `server.json` เก็บรหัสผ่านแบบ plain text ควรระวังการแชร์หรือ commit ไฟล์นี้ขึ้น git
+
+## การพัฒนา
+
+```bash
+cargo fmt --all -- --check   # ตรวจรูปแบบโค้ด
+cargo clippy --all-targets   # ตรวจ lint
+cargo test                   # รันชุดทดสอบ
 ```
 
 
