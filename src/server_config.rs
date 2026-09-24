@@ -4,6 +4,8 @@ use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
+use crate::ssh::SshTarget;
+
 /// Environment variable ที่ใช้ระบุ path ของไฟล์ `server.json`
 pub const SERVER_JSON_ENV: &str = "CBS_SSH_SERVER_JSON";
 
@@ -32,14 +34,27 @@ impl ServerConfig {
     pub fn label(&self) -> String {
         format!("{}  ({}@{}:{})", self.name, self.user, self.host, self.port)
     }
+
+    /// แปลงข้อมูลเซิร์ฟเวอร์เป็นปลายทางสำหรับเชื่อมต่อ SSH
+    pub fn to_target(&self) -> SshTarget {
+        SshTarget {
+            user: self.user.clone(),
+            host: self.host.clone(),
+            port: self.port,
+            password: self.password.clone(),
+            encode: self.encode.clone(),
+        }
+    }
 }
 
 pub fn load_servers(path: &Path) -> Result<Vec<ServerConfig>, String> {
-    let data = fs::read_to_string(path)
-        .map_err(|e| format!("ไม่สามารถอ่าน JSON ได้ {}: {}", path.display(), e))?;
+    let data = fs::read_to_string(path).map_err(|e| read_error(path, &e))?;
 
-    serde_json::from_str::<Vec<ServerConfig>>(&data)
-        .map_err(|e| format!("ไม่สามารถอ่าน JSON ได้ {}: {}", path.display(), e))
+    serde_json::from_str::<Vec<ServerConfig>>(&data).map_err(|e| read_error(path, &e))
+}
+
+fn read_error(path: &Path, err: &dyn std::fmt::Display) -> String {
+    format!("ไม่สามารถอ่าน JSON ได้ {}: {}", path.display(), err)
 }
 
 /// หา path ของ `server.json` ตามลำดับความสำคัญ:
@@ -122,6 +137,25 @@ mod tests {
             password: "secret".to_string(),
         };
         assert_eq!(server.label(), "SERVER_1  (ubuntu@127.0.0.1:2221)");
+    }
+
+    #[test]
+    fn to_target_maps_all_connection_fields() {
+        let server = ServerConfig {
+            name: "SERVER_1".to_string(),
+            user: "ubuntu".to_string(),
+            host: "127.0.0.1".to_string(),
+            port: 2221,
+            encode: "TIS-620".to_string(),
+            password: "secret".to_string(),
+        };
+
+        let target = server.to_target();
+        assert_eq!(target.user, "ubuntu");
+        assert_eq!(target.host, "127.0.0.1");
+        assert_eq!(target.port, 2221);
+        assert_eq!(target.password, "secret");
+        assert_eq!(target.encode, "TIS-620");
     }
 
     #[test]

@@ -2,6 +2,7 @@ services:
   server_1:
     image: linuxserver/openssh-server:version-10.3_p1-r0
     container_name: ssh_server_1
+    restart: unless-stopped
     environment:
       - PUID=1000
       - PGID=1000
@@ -11,22 +12,37 @@ services:
       - USER_NAME=ubuntu
     ports:
       - "2221:2222" # รีไดเรกต์พอร์ตมาที่เครื่องหลักเป็น 2221
+    volumes:
+      - ./data/server_1:/config # เก็บ host key ไว้ไม่ให้เปลี่ยนเมื่อสร้าง container ใหม่
+
   server_2:
     image: linuxserver/openssh-server:version-10.3_p1-r0
     container_name: ssh_server_2
+    restart: unless-stopped
     environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Bangkok
       - PASSWORD_ACCESS=true
       - USER_PASSWORD=password222 # รหัสผ่านของ Server 2
       - USER_NAME=ubuntu
     ports:
       - "2222:2222" # รีไดเรกต์พอร์ตมาที่เครื่องหลักเป็น 2222
+    volumes:
+      - ./data/server_2:/config # เก็บ host key ไว้ไม่ให้เปลี่ยนเมื่อสร้าง container ใหม่
 
   server_3:
     image: linuxserver/openssh-server:version-10.3_p1-r0
     container_name: ssh_server_3
+    restart: unless-stopped
     environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Bangkok
       - PASSWORD_ACCESS=true
       - USER_PASSWORD=password333 # รหัสผ่านของ Server 3
       - USER_NAME=ubuntu
     ports:
       - "2223:2222" # รีไดเรกต์พอร์ตมาที่เครื่องหลักเป็น 2223
+    volumes:
+      - ./data/server_3:/config # เก็บ host key ไว้ไม่ให้เปลี่ยนเมื่อสร้าง container ใหม่

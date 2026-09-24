@@ -1,49 +1,74 @@
 use std::io::ErrorKind;
 use std::process::{Command, Stdio};
 
-/// เชื่อมต่อ SSH ด้วยรหัสผ่านผ่านคำสั่ง `sshpass`
-pub fn connect_ssh_with_password(
-    user: &str,
-    host: &str,
-    port: u16,
-    password: &str,
-    encode: &str,
-) -> Result<(), String> {
-    let connection_string = format!("{user}@{host}");
+const SSHPASS_BIN: &str = "sshpass";
+const SSH_BIN: &str = "ssh";
+const ACCEPT_NEW_HOST_KEY: &str = "StrictHostKeyChecking=accept-new";
 
-    let mut child = Command::new("sshpass")
+/// ปลายทางที่ใช้เชื่อมต่อ SSH (รวบทุกข้อมูลที่ต้องใช้ไว้ที่เดียว)
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SshTarget {
+    pub user: String,
+    pub host: String,
+    pub port: u16,
+    pub password: String,
+    pub encode: String,
+}
+
+impl SshTarget {
+    pub fn new(
+        user: impl Into<String>,
+        host: impl Into<String>,
+        port: u16,
+        password: impl Into<String>,
+        encode: impl Into<String>,
+    ) -> Self {
+        Self {
+            user: user.into(),
+            host: host.into(),
+            port,
+            password: password.into(),
+            encode: encode.into(),
+        }
+    }
+}
+
+/// เชื่อมต่อ SSH ด้วยรหัสผ่านผ่านคำสั่ง `sshpass`
+pub fn connect(target: &SshTarget) -> Result<(), String> {
+    let connection_string = format!("{}@{}", target.user, target.host);
+
+    let status = Command::new(SSHPASS_BIN)
         // ส่งรหัสผ่านผ่าน env SSHPASS (ใช้ sshpass -e) เพื่อไม่ให้รหัสผ่าน
         // ปรากฏใน process list (ps)
-        .env("SSHPASS", password)
+        .env("SSHPASS", &target.password)
         .env("LC_ALL", "C")
-        .env("LANG", encode)
+        .env("LANG", &target.encode)
         .arg("-e")
-        .arg("ssh")
+        .arg(SSH_BIN)
         .arg("-t")
         .arg("-p")
-        .arg(port.to_string())
+        .arg(target.port.to_string())
         .arg("-o")
-        .arg("StrictHostKeyChecking=accept-new")
+        .arg(ACCEPT_NEW_HOST_KEY)
         .arg(connection_string)
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
-        .spawn()
-        .map_err(|e| match e.kind() {
-            ErrorKind::NotFound => {
-                "ไม่พบคำสั่ง sshpass ใน PATH. ติดตั้งก่อนใช้งาน เช่น Ubuntu/WSL: sudo apt install sshpass"
-                    .to_string()
-            }
-            _ => format!("เริ่มคำสั่ง sshpass ไม่สำเร็จ: {e}"),
-        })?;
-
-    let status = child
-        .wait()
-        .map_err(|e| format!("รอผลการเชื่อมต่อ SSH ไม่สำเร็จ: {e}"))?;
+        .status()
+        .map_err(spawn_error)?;
 
     if status.success() {
         Ok(())
     } else {
         Err(format!("SSH จบด้วยสถานะผิดปกติ: {status}"))
+    }
+}
+
+fn spawn_error(err: std::io::Error) -> String {
+    match err.kind() {
+        ErrorKind::NotFound => format!(
+            "ไม่พบคำสั่ง {SSHPASS_BIN} ใน PATH. ติดตั้งก่อนใช้งาน เช่น Ubuntu/WSL: sudo apt install sshpass"
+        ),
+        _ => format!("เริ่มคำสั่ง {SSHPASS_BIN} ไม่สำเร็จ: {err}"),
     }
 }

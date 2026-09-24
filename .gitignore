@@ -1,1 +1,4 @@
 /target
+
+# ข้อมูลที่ container สร้างระหว่างรัน (host key ฯลฯ)
+/data

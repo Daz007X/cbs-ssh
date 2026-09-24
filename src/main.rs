@@ -5,13 +5,13 @@ mod ssh;
 
 use std::env;
 use std::io::{self, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use cli::{Command, DirectTarget};
+use cli::Command;
 use ratatui::MenuAction;
 use server_config::{ServerConfig, load_servers, resolve_server_json_path};
-use ssh::connect_ssh_with_password;
+use ssh::connect;
 
 const DEFAULT_BIN: &str = "cbs-ssh";
 
@@ -42,14 +42,20 @@ fn run(command: Command) -> Result<(), String> {
         Command::Interactive => run_interactive(),
         Command::ShowServers => run_show(),
         Command::ConnectByName(server_name) => run_named(&server_name),
-        Command::ConnectDirect(target) => run_direct(&target),
+        Command::ConnectDirect(target) => connect(&target),
     }
+}
+
+/// โหลด path และรายการเซิร์ฟเวอร์จาก `server.json` พร้อมกัน
+fn load_server_configs() -> Result<(PathBuf, Vec<ServerConfig>), String> {
+    let path = resolve_server_json_path()?;
+    let servers = load_servers(&path)?;
+    Ok((path, servers))
 }
 
 /// เปิดเมนูเลือกเซิร์ฟเวอร์แบบ interactive
 fn run_interactive() -> Result<(), String> {
-    let server_json = resolve_server_json_path()?;
-    let servers = load_servers(&server_json)?;
+    let (server_json, servers) = load_server_configs()?;
     let labels: Vec<String> = servers.iter().map(ServerConfig::label).collect();
 
     loop {
@@ -61,7 +67,7 @@ fn run_interactive() -> Result<(), String> {
                 let server = servers
                     .get(index)
                     .ok_or_else(|| format!("เลือกเซิร์ฟเวอร์ไม่ถูกต้อง: {index}"))?;
-                return connect(server);
+                return connect(&server.to_target());
             }
             MenuAction::ShowServer => {
                 show_server_file(&server_json)?;
@@ -84,36 +90,14 @@ fn run_show() -> Result<(), String> {
 
 /// เชื่อมต่อโดยค้นหาเซิร์ฟเวอร์จากชื่อใน `server.json`
 fn run_named(server_name: &str) -> Result<(), String> {
-    let server_json = resolve_server_json_path()?;
-    let servers = load_servers(&server_json)?;
+    let (server_json, servers) = load_server_configs()?;
 
     let server = servers
         .iter()
         .find(|server| server.name == server_name)
         .ok_or_else(|| format!("ไม่พบเซิร์ฟเวอร์ '{server_name}' ใน {}", server_json.display()))?;
 
-    connect(server)
-}
-
-/// เชื่อมต่อด้วยค่าที่ส่งมาตรง ๆ โดยไม่ต้องมี `server.json`
-fn run_direct(target: &DirectTarget) -> Result<(), String> {
-    connect_ssh_with_password(
-        &target.user,
-        &target.host,
-        target.port,
-        &target.password,
-        &target.encode,
-    )
-}
-
-fn connect(server: &ServerConfig) -> Result<(), String> {
-    connect_ssh_with_password(
-        &server.user,
-        &server.host,
-        server.port,
-        &server.password,
-        &server.encode,
-    )
+    connect(&server.to_target())
 }
 
 fn show_server_file(path: &Path) -> Result<(), String> {

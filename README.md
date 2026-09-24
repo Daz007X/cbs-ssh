@@ -142,6 +142,28 @@ source ~/.zshrc
 source ~/.bashrc
 ```
 
+## แก้ปัญหา SSH host key changed
+
+ถ้าเจอข้อความแบบนี้:
+
+```
+WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!
+Host key for [127.0.0.1]:2221 has changed and you have requested strict checking.
+Host key verification failed.
+```
+
+สาเหตุคือ host key ของเซิร์ฟเวอร์เปลี่ยนไป (พบบ่อยกับ container ที่ถูกสร้างใหม่) โปรแกรมใช้ `StrictHostKeyChecking=accept-new` จึงยอมรับเฉพาะ host **ใหม่** แต่จะปฏิเสธเมื่อ key เดิมเปลี่ยน
+
+แก้โดยลบ key เก่าออกจาก `known_hosts`:
+
+```bash
+ssh-keygen -f "$HOME/.ssh/known_hosts" -R '[127.0.0.1]:2221'
+```
+
+ทำซ้ำกับทุกพอร์ตที่ใช้งาน (2222, 2223)
+
+วิธีป้องกันไม่ให้เกิดซ้ำ: ให้ container เก็บ host key ถาวรด้วย volume ที่ path `/config` ซึ่งกำหนดไว้แล้วใน `docker-compose.yml` (`./data/server_*:/config`) เมื่อสร้าง container ใหม่ host key จะคงเดิม
+
 ## ความปลอดภัย
 
 - รหัสผ่านถูกส่งให้ `sshpass` ผ่านตัวแปรสภาพแวดล้อม `SSHPASS` (ใช้ `sshpass -e`) จึงไม่ปรากฏใน process list
