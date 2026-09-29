@@ -53,7 +53,7 @@ pub fn load_servers(path: &Path) -> Result<Vec<ServerConfig>, String> {
     serde_json::from_str::<Vec<ServerConfig>>(&data).map_err(|e| read_error(path, &e))
 }
 
-fn read_error(path: &Path, err: &dyn std::fmt::Display) -> String {
+fn read_error(path: &Path, err: &impl std::fmt::Display) -> String {
     format!("ไม่สามารถอ่าน JSON ได้ {}: {}", path.display(), err)
 }
 
