@@ -1,6 +1,7 @@
 use std::io::ErrorKind;
 use std::process::{Command, Stdio};
 
+const LUIT_BIN: &str = "luit";
 const SSHPASS_BIN: &str = "sshpass";
 const SSH_BIN: &str = "ssh";
 const ACCEPT_NEW_HOST_KEY: &str = "StrictHostKeyChecking=accept-new";
@@ -34,16 +35,18 @@ impl SshTarget {
 }
 
 /// เชื่อมต่อ SSH ด้วยรหัสผ่านผ่านคำสั่ง `sshpass`
+///
+/// เทียบเท่าคำสั่ง shell:
+/// `luit -encoding <encode> sshpass -p <password> ssh <user>@<host>`
 pub fn connect(target: &SshTarget) -> Result<(), String> {
     let connection_string = format!("{}@{}", target.user, target.host);
 
-    let status = Command::new(SSHPASS_BIN)
-        // ส่งรหัสผ่านผ่าน env SSHPASS (ใช้ sshpass -e) เพื่อไม่ให้รหัสผ่าน
-        // ปรากฏใน process list (ps)
-        .env("SSHPASS", &target.password)
-        .env("LC_ALL", "C")
-        .env("LANG", &target.encode)
-        .arg("-e")
+    let status = Command::new(LUIT_BIN)
+        .arg("-encoding")
+        .arg(&target.encode)
+        .arg(SSHPASS_BIN)
+        .arg("-p")
+        .arg(&target.password)
         .arg(SSH_BIN)
         .arg("-t")
         .arg("-p")
@@ -67,8 +70,8 @@ pub fn connect(target: &SshTarget) -> Result<(), String> {
 fn spawn_error(err: std::io::Error) -> String {
     match err.kind() {
         ErrorKind::NotFound => format!(
-            "ไม่พบคำสั่ง {SSHPASS_BIN} ใน PATH. ติดตั้งก่อนใช้งาน เช่น Ubuntu/WSL: sudo apt install sshpass"
+            "ไม่พบคำสั่ง {LUIT_BIN} ใน PATH. ติดตั้งก่อนใช้งาน เช่น Ubuntu/WSL: sudo apt install luit sshpass"
         ),
-        _ => format!("เริ่มคำสั่ง {SSHPASS_BIN} ไม่สำเร็จ: {err}"),
+        _ => format!("เริ่มคำสั่ง {LUIT_BIN} ไม่สำเร็จ: {err}"),
     }
 }
